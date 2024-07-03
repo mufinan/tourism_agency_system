@@ -3,9 +3,12 @@
   <grid id="27dc6" binding="wrapper" layout-manager="GridLayoutManager" row-count="2" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="15" left="15" bottom="15" right="15"/>
     <constraints>
-      <xy x="20" y="20" width="1121" height="1151"/>
+      <xy x="20" y="20" width="1920" height="1130"/>
     </constraints>
-    <properties/>
+    <properties>
+      <minimumSize width="1920" height="1080"/>
+      <preferredSize width="1920" height="1080"/>
+    </properties>
     <border type="none" title=""/>
     <children>
       <component id="71678" class="javax.swing.JButton" binding="btn_exit">
@@ -19,7 +22,7 @@
       <tabbedpane id="784" binding="tabbedPane1" default-binding="true">
         <constraints>
           <grid row="1" column="1" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="200" height="200"/>
+            <preferred-size width="300" height="300"/>
           </grid>
         </constraints>
         <properties/>
@@ -56,7 +59,7 @@
                 <children>
                   <component id="33d57" class="javax.swing.JLabel">
                     <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
                       <text value="Otel Adi :"/>
@@ -398,14 +401,6 @@
                       <text value="Donem Islemleri"/>
                     </properties>
                   </component>
-                  <component id="6c35c" class="javax.swing.JLabel">
-                    <constraints>
-                      <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <text value="Donem Ekle"/>
-                    </properties>
-                  </component>
                   <component id="fdd0e" class="javax.swing.JLabel">
                     <constraints>
                       <grid row="11" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
@@ -443,7 +438,7 @@
                       <grid row="15" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text value="Baslangic Tarihi "/>
+                      <text value="Baslangic Tarihi (yyyy-mm-dd)"/>
                     </properties>
                   </component>
                   <component id="76cb2" class="javax.swing.JTextField" binding="fld_start_date">
@@ -459,7 +454,7 @@
                       <grid row="17" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text value="Bitis Tarihi"/>
+                      <text value="Bitis Tarihi (yyyy-mm-dd)"/>
                     </properties>
                   </component>
                   <component id="a3a45" class="javax.swing.JTextField" binding="fld_end_date">
@@ -510,6 +505,14 @@
                     </constraints>
                     <properties>
                       <text value="Silme"/>
+                    </properties>
+                  </component>
+                  <component id="6c35c" class="javax.swing.JLabel">
+                    <constraints>
+                      <grid row="10" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                    </constraints>
+                    <properties>
+                      <text value="Donem Ekle"/>
                     </properties>
                   </component>
                 </children>
@@ -660,7 +663,7 @@
                       <grid row="11" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text value="Oda No :"/>
+                      <text value="Yatak Sayısı :"/>
                     </properties>
                   </component>
                   <component id="8d8f5" class="javax.swing.JTextField" binding="fld_room_no">
@@ -813,7 +816,7 @@
             <properties/>
             <border type="none"/>
             <children>
-              <grid id="fa73f" layout-manager="GridLayoutManager" row-count="2" column-count="6" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+              <grid id="fa73f" layout-manager="GridLayoutManager" row-count="2" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                 <margin top="10" left="10" bottom="10" right="10"/>
                 <constraints>
                   <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -823,15 +826,15 @@
                 <children>
                   <component id="9e9f7" class="javax.swing.JLabel">
                     <constraints>
-                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text value="Bölge/Şehir/Otel"/>
+                      <text value="Otel"/>
                     </properties>
                   </component>
                   <component id="e74bf" class="javax.swing.JLabel">
                     <constraints>
-                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                      <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
                       <text value="Giriş Tarihi"/>
@@ -839,7 +842,7 @@
                   </component>
                   <component id="9371a" class="javax.swing.JLabel">
                     <constraints>
-                      <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                      <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
                       <text value="Çıkış Tarihi"/>
@@ -847,23 +850,15 @@
                   </component>
                   <component id="8e5e5" class="javax.swing.JLabel">
                     <constraints>
-                      <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                      <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text value="Yetişkin +12"/>
-                    </properties>
-                  </component>
-                  <component id="96aba" class="javax.swing.JLabel">
-                    <constraints>
-                      <grid row="0" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <text value="Çocuk "/>
+                      <text value="Şehir"/>
                     </properties>
                   </component>
                   <component id="131e" class="javax.swing.JTextField" binding="fld_search_mix_value">
                     <constraints>
-                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                         <preferred-size width="150" height="-1"/>
                       </grid>
                     </constraints>
@@ -871,7 +866,7 @@
                   </component>
                   <component id="cf6c3" class="javax.swing.JTextField" binding="fld_search_room_start_date">
                     <constraints>
-                      <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                      <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                         <preferred-size width="150" height="-1"/>
                       </grid>
                     </constraints>
@@ -879,31 +874,17 @@
                   </component>
                   <component id="2ed80" class="javax.swing.JTextField" binding="fld_search_room_end_date">
                     <constraints>
+                      <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                        <preferred-size width="150" height="-1"/>
+                      </grid>
+                    </constraints>
+                    <properties/>
+                  </component>
+                  <component id="485ef" class="javax.swing.JTextField" binding="fld_search_room_city">
+                    <constraints>
                       <grid row="1" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                         <preferred-size width="150" height="-1"/>
                       </grid>
-                    </constraints>
-                    <properties/>
-                  </component>
-                  <component id="485ef" class="javax.swing.JTextField" binding="fld_search_room_adult_price_">
-                    <constraints>
-                      <grid row="1" column="4" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                        <preferred-size width="150" height="-1"/>
-                      </grid>
-                    </constraints>
-                    <properties/>
-                  </component>
-                  <component id="e8d01" class="javax.swing.JTextField" binding="fld_search_room_child_price">
-                    <constraints>
-                      <grid row="1" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
-                        <preferred-size width="150" height="-1"/>
-                      </grid>
-                    </constraints>
-                    <properties/>
-                  </component>
-                  <component id="31d8f" class="javax.swing.JComboBox" binding="cmb_search_mix_list">
-                    <constraints>
-                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties/>
                   </component>
@@ -978,7 +959,7 @@
                   <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
-                  <text value="Rezeryason "/>
+                  <text value="Rezervasyon "/>
                 </properties>
               </component>
             </children>

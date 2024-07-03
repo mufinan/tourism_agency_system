@@ -4,6 +4,8 @@ import Helper.Contanct;
 import Helper.DBConnector;
 import Helper.Helper;
 
+import java.sql.PreparedStatement;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -26,14 +28,15 @@ public class Room {
     private int bed_number;
     private int sqr_meter;
 
-    public Room(int id, int otel_id, int lodgings_id, int season_id,  String features, String name, int stock, int bed_number, int sqr_meter , int price_adult, int price_child) {
+    // Constructor: Yeni bir Room nesnesi oluşturur
+    public Room(int id, int otel_id, int lodgings_id, int season_id, String features, String name, int stock, int bed_number, int sqr_meter, int price_adult, int price_child) {
         this.id = id;
         this.otel_id = otel_id;
-        this.hotel = Hotel.getFetch(otel_id);
+        this.hotel = Hotel.getFetch(otel_id); // Otel bilgilerini getirir
         this.lodgings_id = lodgings_id;
-        this.lodgings = Lodgings.getFetch(lodgings_id);
+        this.lodgings = Lodgings.getFetch(lodgings_id); // Konaklama bilgilerini getirir
         this.season_id = season_id;
-        this.season = Season.getFetch(season_id);
+        this.season = Season.getFetchById(season_id); // Sezon bilgilerini getirir
         this.price_adult = price_adult;
         this.price_child = price_child;
         this.features = features;
@@ -43,13 +46,13 @@ public class Room {
         this.sqr_meter = sqr_meter;
     }
 
-
-
+    // Belirli bir odayı silen metod
     public static boolean delete(int i) {
-        String query = "DELETE FROM `room` WHERE `room`.`id` = "+i;
-        try {
-            Statement statement = DBConnector.getConnection().createStatement();
-            statement.executeUpdate(query);
+        String query = "DELETE FROM room WHERE id = ?";
+        try (Connection connection = DBConnector.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, i);
+            statement.executeUpdate();
             return true;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -57,16 +60,31 @@ public class Room {
         }
     }
 
-    public static boolean add(int id, int id1, int id2, String text, String string, String text1, String text2, String text3, String string1, String text4, String text5) {
-        String query = "INSERT INTO `room` (`id`, `otel_id`, `lodgings_id`, `season_id`,  `name`, `stock`, `bed_number`, `sqr_meter`,`room_type`,`features`, `price_adult`, `price_child`) VALUES (NULL, '"+id+"', '"+id1+"', '"+id2+"', '"+text+"', '"+string+"', '"+text1+"', '"+text2+"', '"+text3+"', '"+string1+"', '"+text4+"', '"+text5+"')";
-        Room room = Room.getFetch(String.valueOf(id),text1);
+    // Yeni bir oda ekleyen metod
+    public static boolean add(int otel_id, int lodgings_id, int season_id, String name, String stock, String bed_number, String sqr_meter, String room_type, String features, String price_adult, String price_child) {
+        String query = "INSERT INTO room (otel_id, lodgings_id, season_id, name, stock, bed_number, sqr_meter, room_type, features, price_adult, price_child) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        Room room = Room.getFetch(otel_id, Integer.parseInt(bed_number));
         if (room != null) {
-            Helper.showMessage("Bu oda zaten ekli", "Hata", 2); // TODO: 10.11.2023
+            Helper.showMessage("Bu oda zaten ekli", "Hata", 2);
             return false;
         }
-        try {
-            Statement statement = DBConnector.getConnection().createStatement();
-            statement.executeUpdate(query);
+
+        try (Connection connection = DBConnector.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            // Sorgu parametrelerini ayarlar
+            statement.setInt(1, otel_id);
+            statement.setInt(2, lodgings_id);
+            statement.setInt(3, season_id);
+            statement.setString(4, name);
+            statement.setInt(5, Integer.parseInt(stock));
+            statement.setInt(6, Integer.parseInt(bed_number));
+            statement.setInt(7, Integer.parseInt(sqr_meter));
+            statement.setString(8, room_type);
+            statement.setString(9, features);
+            statement.setInt(10, Integer.parseInt(price_adult));
+            statement.setInt(11, Integer.parseInt(price_child));
+            statement.executeUpdate();
             return true;
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -74,52 +92,30 @@ public class Room {
         }
     }
 
-    private static Room getFetch(String otel_id, String bed_number) {
-        String query = "SELECT * FROM room WHERE `otel_id` = '" + otel_id + "' AND `bed_number` = '" + bed_number + "'";
+    // Belirli bir otel ve yatak numarasına göre oda bilgilerini çeken metod
+    private static Room getFetch(int otel_id, int bed_number) {
+        String query = "SELECT * FROM room WHERE otel_id = ? AND bed_number = ?";
         Room room = null;
-        try {
-            Statement statement = DBConnector.getConnection().createStatement();
-            ResultSet resultSet = statement.executeQuery(query);
-            while (resultSet.next()) {
-                room = new Room(
-                        resultSet.getInt("id"),
-                        resultSet.getInt("otel_id"),
-                        resultSet.getInt("lodgings_id"),
-                        resultSet.getInt("season_id"),
-                        resultSet.getString("features"),
-                        resultSet.getString("name"),
-                        resultSet.getInt("stock"),
-                        resultSet.getInt("bed_number"),
-                        resultSet.getInt("sqr_meter"),
-                        resultSet.getInt("price_adult"),
-                        resultSet.getInt("price_child")
-                );
-            }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
-        }
-        return room;
-    }
-    public static Room getFetch(String room_id){
-        String query = "SELECT * FROM room WHERE `id` = '" + room_id + "'";
-        Room room = null;
-        try {
-            Statement statement = DBConnector.getConnection().createStatement();
-            ResultSet resultSet = statement.executeQuery(query);
-            while (resultSet.next()) {
-                room = new Room(
-                        resultSet.getInt("id"),
-                        resultSet.getInt("otel_id"),
-                        resultSet.getInt("lodgings_id"),
-                        resultSet.getInt("season_id"),
-                        resultSet.getString("features"),
-                        resultSet.getString("name"),
-                        resultSet.getInt("stock"),
-                        resultSet.getInt("bed_number"),
-                        resultSet.getInt("sqr_meter"),
-                        resultSet.getInt("price_adult"),
-                        resultSet.getInt("price_child")
-                );
+        try (Connection connection = DBConnector.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, otel_id);
+            statement.setInt(2, bed_number);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    room = new Room(
+                            resultSet.getInt("id"),
+                            resultSet.getInt("otel_id"),
+                            resultSet.getInt("lodgings_id"),
+                            resultSet.getInt("season_id"),
+                            resultSet.getString("features"),
+                            resultSet.getString("name"),
+                            resultSet.getInt("stock"),
+                            resultSet.getInt("bed_number"),
+                            resultSet.getInt("sqr_meter"),
+                            resultSet.getInt("price_adult"),
+                            resultSet.getInt("price_child")
+                    );
+                }
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
@@ -127,15 +123,60 @@ public class Room {
         return room;
     }
 
-    public static ArrayList<Room> search(String adult_price, String child_price) {
-        ArrayList<Room> roomArrayList = new ArrayList<>();
-        Room roomObject = null;
-        String query = "SELECT * FROM `room` WHERE `price_adult` = '"+adult_price+"' AND `price_child` = '"+child_price+"'";
-        try {
-            Statement statement = DBConnector.getConnection().createStatement();
-            ResultSet resultSet = statement.executeQuery(query);
+    // Belirli bir oda ID'sine göre oda bilgilerini çeken metod
+    public static Room getFetch(int roomId) {
+        String query = "SELECT * FROM room WHERE id = ?";
+        Room room = null;
+        try (Connection connection = DBConnector.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, roomId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    room = new Room(
+                            resultSet.getInt("id"),
+                            resultSet.getInt("otel_id"),
+                            resultSet.getInt("lodgings_id"),
+                            resultSet.getInt("season_id"),
+                            resultSet.getString("features"),
+                            resultSet.getString("name"),
+                            resultSet.getInt("stock"),
+                            resultSet.getInt("bed_number"),
+                            resultSet.getInt("sqr_meter"),
+                            resultSet.getInt("price_adult"),
+                            resultSet.getInt("price_child")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Veritabanı sorgusu sırasında bir hata oluştu: " + e.getMessage());
+        }
+        return room;
+    }
+
+    // Belirli kriterlere göre oda arayan metod
+    public static ArrayList<Room> search(String startDateStr, String endDateStr, String city, String searchMixValue) {
+        ArrayList<Room> roomList = new ArrayList<>();
+        String query = "SELECT r.* FROM room r " +
+                "JOIN season s ON r.season_id = s.id " +
+                "JOIN otel h ON r.otel_id = h.id " +
+                "WHERE ? BETWEEN s.start_date AND s.end_date " +
+                "AND ? BETWEEN s.start_date AND s.end_date " +
+                "AND h.city  = '" + city + "'" +
+                "AND h.name  = '" + searchMixValue + "'";
+
+        try (Connection connection = DBConnector.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+
+            java.sql.Date startDate = java.sql.Date.valueOf(startDateStr);
+            java.sql.Date endDate = java.sql.Date.valueOf(endDateStr);
+
+            preparedStatement.setDate(1, startDate);
+            preparedStatement.setDate(2, endDate);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
-                roomObject = new Room(
+                Room room = new Room(
                         resultSet.getInt("id"),
                         resultSet.getInt("otel_id"),
                         resultSet.getInt("lodgings_id"),
@@ -148,25 +189,29 @@ public class Room {
                         resultSet.getInt("price_adult"),
                         resultSet.getInt("price_child")
                 );
-                roomArrayList.add(roomObject);
+                roomList.add(room);
             }
-        } catch (SQLException throwables) {
-            throwables.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return roomArrayList;
+        return roomList;
     }
 
+    // Oda stok miktarını güncelleyen metod
     public static boolean update(int roomNo, int i) {
-        String query = "UPDATE `room` SET `stock` = '"+i+"' WHERE `room`.`id` = "+roomNo;
-        try {
-            Statement statement = DBConnector.getConnection().createStatement();
-            statement.executeUpdate(query);
+        String query = "UPDATE room SET stock = ? WHERE id = ?";
+        try (Connection connection = DBConnector.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setInt(1, i);
+            statement.setInt(2, roomNo);
+            statement.executeUpdate();
             return true;
         } catch (SQLException throwables) {
             return false;
         }
     }
 
+    // Getter ve setter metodları
     public int getPrice_adult() {
         return price_adult;
     }
@@ -207,14 +252,17 @@ public class Room {
         this.season = season;
     }
 
+    // Tüm odaları listeleyen metod
     public static ArrayList<Room> getList() {
         ArrayList<Room> roomArrayList = new ArrayList<>();
-        Room roomObject = null;
-        try {
-            Statement statement = DBConnector.getConnection().createStatement();
-            ResultSet resultSet = statement.executeQuery(Contanct.LIST_QUERY("room"));
+        String query = Contanct.LIST_QUERY("room");
+
+        try (Connection connection = DBConnector.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+
             while (resultSet.next()) {
-                roomObject = new Room(
+                Room room = new Room(
                         resultSet.getInt("id"),
                         resultSet.getInt("otel_id"),
                         resultSet.getInt("lodgings_id"),
@@ -227,10 +275,11 @@ public class Room {
                         resultSet.getInt("price_adult"),
                         resultSet.getInt("price_child")
                 );
-                roomArrayList.add(roomObject);
+                roomArrayList.add(room);
             }
         } catch (SQLException throwables) {
             throwables.printStackTrace();
+            System.err.println("Veritabanı sorgusu sırasında bir hata oluştu: " + throwables.getMessage());
         }
         return roomArrayList;
     }
@@ -263,13 +312,13 @@ public class Room {
         return season_id;
     }
 
+    public String getSeason_name() {
+        return season.getName();
+    }
+
     public void setSeason_id(int season_id) {
         this.season_id = season_id;
     }
-
-
-
-
 
     public String getFeatures() {
         return features;

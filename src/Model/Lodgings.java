@@ -4,28 +4,35 @@ import Helper.Contanct;
 import Helper.DBConnector;
 import Helper.Helper;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
 public class Lodgings {
     private int id;
     private int otel_id;
-    private Hotel hotel;
     private String type;
 
+    // Constructor to initialize Lodgings object
     public Lodgings(int id, int otel_id, String type) {
         this.id = id;
         this.otel_id = otel_id;
         this.type = type;
     }
 
+    // Method to get a list of lodgings based on the hotel ID
     public static ArrayList<Lodgings> getList(int otel_id) {
         ArrayList<Lodgings> lodgingsArrayList = new ArrayList<>();
         try {
+            // Create a statement to execute the query
             Statement statement = DBConnector.getConnection().createStatement();
-            statement.execute(Contanct.LIST_QUERY_PARAMETRE("lodgings","otel_id", otel_id));
+            // Execute the query to list lodgings with the given hotel ID
+            statement.execute(Contanct.LIST_QUERY_PARAMETRE("lodgings", "otel_id", otel_id));
             ResultSet resultSet = statement.getResultSet();
+            // Loop through the result set and create Lodgings objects
             while (resultSet.next()) {
                 Lodgings lodgings = new Lodgings(
                         resultSet.getInt("id"),
@@ -36,22 +43,26 @@ public class Lodgings {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }finally {
+        } finally {
             return lodgingsArrayList;
         }
     }
 
+    // Method to add a new lodging
     public static boolean add(String otel_id, String feature) {
-          String query = "INSERT INTO lodgings (otel_id, type) VALUES (" +
-                 otel_id + ", '" +
-                 feature + "')";
+        // SQL query to insert a new lodging
+        String query = "INSERT INTO lodgings (otel_id, type) VALUES (" +
+                otel_id + ", '" +
+                feature + "')";
 
-          Lodgings lodgings = Lodgings.getFetchLodgins(otel_id,feature);
-          if (lodgings != null) {
-              Helper.showMessage("Bu özellik zaten ekli", "Hata", 2);
-              return false;
-          }
+        // Check if the lodging already exists
+        Lodgings lodgings = Lodgings.getFetchLodgings(otel_id, feature);
+        if (lodgings != null) {
+            Helper.showMessage("Bu özellik zaten ekli", "Hata", 2);
+            return false;
+        }
         try {
+            // Execute the insert query
             Statement statement = DBConnector.getConnection().createStatement();
             statement.executeUpdate(query);
             return true;
@@ -61,13 +72,16 @@ public class Lodgings {
         }
     }
 
-    private static Lodgings getFetchLodgins(String otelId, String feature) {
+    // Method to fetch a specific lodging based on hotel ID and type
+    private static Lodgings getFetchLodgings(String otelId, String feature) {
         String query = "SELECT * FROM lodgings WHERE otel_id = " + otelId + " AND type = '" + feature + "'";
         Lodgings lodgings = null;
         try {
+            // Execute the query to fetch the lodging
             Statement statement = DBConnector.getConnection().createStatement();
             statement.execute(query);
             ResultSet resultSet = statement.getResultSet();
+            // Create a Lodgings object if the result set has a result
             while (resultSet.next()) {
                 lodgings = new Lodgings(
                         resultSet.getInt("id"),
@@ -81,9 +95,12 @@ public class Lodgings {
         return lodgings;
     }
 
+    // Method to delete a lodging based on its ID
     public static boolean delete(int lodging_id) {
+        // SQL query to delete the lodging
         String query = Contanct.DELETE_QUERY("lodgings", lodging_id);
         try {
+            // Execute the delete query
             Statement statement = DBConnector.getConnection().createStatement();
             statement.executeUpdate(query);
             return true;
@@ -93,13 +110,16 @@ public class Lodgings {
         }
     }
 
+    // Method to fetch a specific lodging based on its ID
     public static Lodgings getFetch(int lodgingsId) {
         String query = Contanct.FETCH_QUERY("lodgings", lodgingsId);
         Lodgings lodgings = null;
         try {
+            // Execute the query to fetch the lodging
             Statement statement = DBConnector.getConnection().createStatement();
             statement.execute(query);
             ResultSet resultSet = statement.getResultSet();
+            // Create a Lodgings object if the result set has a result
             while (resultSet.next()) {
                 lodgings = new Lodgings(
                         resultSet.getInt("id"),
@@ -112,14 +132,18 @@ public class Lodgings {
         }
         return lodgings;
     }
+
+    // Overloaded method to fetch a list of lodgings based on the type
     public static ArrayList<Lodgings> getFetch(String lodgingsType) {
         String query = Contanct.FETCH_QUERY("lodgings", "type", lodgingsType);
         Lodgings lodgings = null;
         ArrayList<Lodgings> lodgingsArrayList = new ArrayList<>();
         try {
+            // Execute the query to fetch the lodgings
             Statement statement = DBConnector.getConnection().createStatement();
             statement.execute(query);
             ResultSet resultSet = statement.getResultSet();
+            // Loop through the result set and create Lodgings objects
             while (resultSet.next()) {
                 lodgings = new Lodgings(
                         resultSet.getInt("id"),
@@ -134,6 +158,33 @@ public class Lodgings {
         return lodgingsArrayList;
     }
 
+    // Method to fetch a specific lodging based on its type and hotel ID
+    public static Lodgings getFetchByType(String type, int hotelId) {
+        String query = "SELECT * FROM lodgings WHERE type = ? AND otel_id = ?";
+        Lodgings lodgings = null;
+        try (Connection connection = DBConnector.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, type);
+            statement.setInt(2, hotelId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    lodgings = new Lodgings(
+                            resultSet.getInt("id"),
+                            resultSet.getInt("otel_id"),
+                            resultSet.getString("type")
+                    );
+                } else {
+                    System.err.println("Lodgings not found with type: " + type + " for hotel ID: " + hotelId);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.err.println("Veritabanı sorgusu sırasında bir hata oluştu: " + e.getMessage());
+        }
+        return lodgings;
+    }
+
+    // Getter and setter methods for Lodgings class properties
     public int getId() {
         return id;
     }
@@ -143,6 +194,10 @@ public class Lodgings {
     }
 
     public int getOtel_id() {
+        return otel_id;
+    }
+
+    public int getOtel_Name() {
         return otel_id;
     }
 

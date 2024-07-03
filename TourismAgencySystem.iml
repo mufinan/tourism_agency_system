@@ -11,6 +11,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="mysql-connector-j-8.1.0" level="project" />
+    <orderEntry type="library" name="postgresql-42.7.3" level="project" />
   </component>
   <component name="SonarLintModuleSettings">
     <option name="uniqueId" value="04b6860c-2546-4bb4-9c08-f54c037f99a5" />

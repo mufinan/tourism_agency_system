@@ -19,15 +19,17 @@ public class RoomFeaturesGUI extends JFrame {
     private Object[] row_hotel_features;
     private DefaultTableModel model_otel_selected;
 
+    // Constructor to initialize the RoomFeaturesGUI
     public RoomFeaturesGUI(JTextField fld_room_features) throws HeadlessException {
         add(wrapper);
         setSize(700, 500);
         setTitle("Otel Ozellikleri");
-        setLocationRelativeTo(null); //ekranda ortada açılması için
+        setLocationRelativeTo(null); // Center the window on the screen
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setResizable(true);
         setVisible(true);
 
+        // Initialize table models
         model_otel_features = new DefaultTableModel();
         model_otel_selected = new DefaultTableModel();
         Object[] col_hotel_features = {"ID", "Otel Ozellikleri"};
@@ -38,6 +40,7 @@ public class RoomFeaturesGUI extends JFrame {
         tbl_selected.setModel(model_otel_selected);
         loadAvailables();
 
+        // Submit button action listener
         btn_submit.addActionListener(e -> {
             for (int i = 0; i < model_otel_selected.getRowCount(); i++) {
                 if (i == 0) {
@@ -47,8 +50,9 @@ public class RoomFeaturesGUI extends JFrame {
                 fld_room_features.setText(fld_room_features.getText() + ", " + model_otel_selected.getValueAt(i, 1).toString());
             }
             dispose();
-
         });
+
+        // Add button action listener
         btn_add.addActionListener(e -> {
             int selectedRow = tbl_availables.getSelectedRow();
             if (selectedRow == -1) {
@@ -60,6 +64,8 @@ public class RoomFeaturesGUI extends JFrame {
             Object[] row = {id, features};
             model_otel_selected.addRow(row);
         });
+
+        // Delete button action listener
         btn_delete.addActionListener(e -> {
             int selectedRow = tbl_selected.getSelectedRow();
             if (selectedRow == -1) {
@@ -70,14 +76,14 @@ public class RoomFeaturesGUI extends JFrame {
             model_otel_selected.removeRow(selectedRow);
             Object[] row = {id, features};
             model_otel_features.addRow(row);
-
         });
     }
 
+    // Method to load available features into the table
     private void loadAvailables() {
         DefaultTableModel clearModel = (DefaultTableModel) tbl_availables.getModel();
         clearModel.setRowCount(0);
-        int i ;
+        int i;
         for (Feature feature : Feature.getList("oda ozelligi")) {
             i = 0;
             row_hotel_features[i++] = feature.getId();

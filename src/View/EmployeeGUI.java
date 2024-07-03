@@ -1,11 +1,17 @@
 package View;
 
 import Helper.Helper;
+import Helper.DBConnector;
 import Model.*;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.List;
 
 import static Helper.Helper.isEmpty;
 
@@ -20,7 +26,6 @@ enum RoomName {
     Junior_Suite,
     Dubleks,
     Suit
-
 }
 
 enum RoomType {
@@ -86,9 +91,7 @@ public class EmployeeGUI extends JFrame {
     private JTextField fld_search_room_end_date;
     private JTable tbl_search_room_list;
     private JButton btn_search;
-    private JTextField fld_search_room_child_price;
-    private JTextField fld_search_room_adult_price_;
-    private JComboBox cmb_search_mix_list;
+    private JTextField fld_search_room_city;
     private JButton btn_reservation_open;
 
     private DefaultTableModel model_otel_list;
@@ -111,55 +114,63 @@ public class EmployeeGUI extends JFrame {
     private DefaultTableModel model_room_search_list;
     private Object[] row_room_search_list;
 
-
+    // Constructor: EmployeeGUI oluşturur
     public EmployeeGUI(Employee employee) {
         this.employee = employee;
         lbl_title.setText("Personel Paneli");
         add(wrapper);
         setSize(1500, 1000);
         setTitle("Employee Panel");
-        setLocationRelativeTo(null); //ekranda ortada açılması için
+        setLocationRelativeTo(null); // Ekranda ortada açılması için
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setResizable(true);
         setVisible(true);
+
+        // Çıkış butonuna listener ekler
         btn_exit.addActionListener(e -> {
             dispose();
             new LoginGUI();
         });
 
-
         // Otel Paneli
-
         model_otel_list = new DefaultTableModel();
         Object[] col_hotel_list = {"ID", "Otel Adı", "Şehir", "Bölge", "Tam Adres", "E-posta", "Telefon", "Yıldız", "Tesis Özellikleri"};
         model_otel_list.setColumnIdentifiers(col_hotel_list);
         row_hotel_list = new Object[col_hotel_list.length];
 
+        // Otel modelini yükler
         loadHotelModel();
         tbl_otel_list.setModel(model_otel_list);
         tbl_otel_list.getTableHeader().setReorderingAllowed(false);
         tbl_otel_list.getColumnModel().getColumn(0).setMaxWidth(30);
         tbl_otel_list.getColumnModel().getColumn(7).setMaxWidth(50);
 
+        // Otel ekleme butonuna listener ekler
         btn_otel_add.addActionListener(e -> {
             if (isEmpty(fld_otel_name) || isEmpty(fld_otel_city) || isEmpty(fld_otel_region) || isEmpty(fld_otel_address) || isEmpty(fld_otel_email) || isEmpty(fld_otel_phone) || isEmpty(fld_otel_star) || isEmpty(fdl_otel_features)) {
                 JOptionPane.showMessageDialog(null, "Lütfen tüm alanları doldurunuz!");
             } else {
-                Hotel.add(
-                        fld_otel_name.getText(),
-                        fld_otel_city.getText(),
-                        fld_otel_region.getText(),
-                        fld_otel_address.getText(),
-                        fld_otel_email.getText(),
-                        fld_otel_phone.getText(),
-                        fld_otel_star.getText(),
-                        fdl_otel_features.getText());
+                try {
+                    int star = Integer.parseInt(fld_otel_star.getText()); // String'i int'e dönüştürür
+                    Hotel.add(
+                            fld_otel_name.getText(),
+                            fld_otel_city.getText(),
+                            fld_otel_region.getText(),
+                            fld_otel_address.getText(),
+                            fld_otel_email.getText(),
+                            fld_otel_phone.getText(),
+                            star, // Dönüştürülmüş int değeri kullanır
+                            fdl_otel_features.getText());
 
-                loadHotelModel();
-                Helper.clearTextField(fld_otel_name, fld_otel_city, fld_otel_region, fld_otel_address, fld_otel_email, fld_otel_phone, fld_otel_star, fdl_otel_features);
+                    loadHotelModel();
+                    Helper.clearTextField(fld_otel_name, fld_otel_city, fld_otel_region, fld_otel_address, fld_otel_email, fld_otel_phone, fld_otel_star, fdl_otel_features);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Lütfen yıldız alanına geçerli bir sayı giriniz!");
+                }
             }
-
         });
+
+        // Otel tablosundaki seçim değişikliklerine listener ekler
         tbl_otel_list.getSelectionModel().addListSelectionListener(
                 e -> {
                     try {
@@ -173,6 +184,7 @@ public class EmployeeGUI extends JFrame {
                     }
                 });
 
+        // Otel silme butonuna listener ekler
         btn_otel_delete.addActionListener(e -> {
             if (isEmpty(fld_otel_id)) {
                 JOptionPane.showMessageDialog(null, "Lütfen ID alanını doldurunuz!");
@@ -195,19 +207,17 @@ public class EmployeeGUI extends JFrame {
                             }
                         }
                     }
-
-
                 }
                 loadHotelModel();
                 Helper.clearTextField(fld_otel_id);
             }
-
         });
 
+        // Otel özellikleri butonuna listener ekler
         btn_otel_features.addActionListener(e -> {
             new FeaturesGUI(fdl_otel_features);
         });
-        // Otel Paneli
+
         // Pansiyon Paneli
         model_lodgings_list = new DefaultTableModel();
         Object[] col_lodgings_list = {"ID", "Otel Adi", "Pansiyon Turu"};
@@ -215,8 +225,10 @@ public class EmployeeGUI extends JFrame {
         row_lodgings_list = new Object[col_lodgings_list.length];
         tbl_lodgings_list.setModel(model_lodgings_list);
 
+        // Pansiyon özelliklerini yükler
         loadLodgingsFeaterus();
 
+        // Pansiyon ekleme butonuna listener ekler
         btn_lodgins_add.addActionListener(e -> {
             if (isEmpty(fld_otel_lodging_id) || cbm_otel_lodgings_features.getSelectedIndex() == -1) {
                 JOptionPane.showMessageDialog(null, "Lütfen tüm alanları doldurunuz!");
@@ -224,7 +236,6 @@ public class EmployeeGUI extends JFrame {
                 if (Lodgings.add(
                         fld_otel_lodging_id.getText(),
                         cbm_otel_lodgings_features.getSelectedItem().toString())
-
                 ) {
                     JOptionPane.showMessageDialog(null, "Pansiyon eklendi!", "Bilgi", 1);
                 } else {
@@ -233,8 +244,9 @@ public class EmployeeGUI extends JFrame {
                 loadLodgingsModel(Integer.parseInt(fld_otel_id.getText()));
                 Helper.clearTextField(fld_otel_lodging_id);
             }
-
         });
+
+        // Pansiyon tablosundaki seçim değişikliklerine listener ekler
         tbl_lodgings_list.getSelectionModel().addListSelectionListener(
                 e -> {
                     try {
@@ -245,8 +257,7 @@ public class EmployeeGUI extends JFrame {
                     }
                 });
 
-
-        // Pansiyon Paneli
+        // Pansiyon silme butonuna listener ekler
         btn_lodging_delete.addActionListener(e -> {
             if (isEmpty(fld_lodgind_id)) {
                 JOptionPane.showMessageDialog(null, "Lütfen ID alanını doldurunuz!", "UYARI", 0);
@@ -257,38 +268,40 @@ public class EmployeeGUI extends JFrame {
                     } else {
                         JOptionPane.showMessageDialog(null, "Pansiyon silinemedi!", "Hata", 0);
                     }
-
                 }
                 loadLodgingsModel(Integer.parseInt(fld_otel_id.getText()));
                 Helper.clearTextField(fld_lodgind_id);
             }
-
         });
 
         // Oda Paneli
-
         model_room_list = new DefaultTableModel();
-        Object[] col_room_list = {"ID", "Otel Adı", "Pansiyon Turu", "Donem Adi", "Oda Adı", "Oda Özellikleri", "Oda No", "Metre Kare", "Stok", "Yetişkin Fiyatı", "Çocuk Fiyatı"};
+        Object[] col_room_list = {"ID", "Otel Adı", "Pansiyon Turu", "Donem Adi", "Oda Adı", "Oda Özellikleri", "Yatak Sayısı", "Metre Kare", "Stok", "Yetişkin Fiyatı", "Çocuk Fiyatı"};
         model_room_list.setColumnIdentifiers(col_room_list);
         row_room_list = new Object[col_room_list.length];
         tbl_room_list_new.setModel(model_room_list);
         loadRoomModel();
 
         cmb_room_otel_name.removeAllItems();
-
         loadComboBoxHotelName();
         loadComboxBoxLodgingsName();
 
+        // Otel adı combobox değiştiğinde pansiyon adını yükler
         cmb_room_otel_name.addActionListener(e -> {
             loadComboxBoxLodgingsName();
         });
 
+        // Sezon, oda adı ve oda tipi comboboxlarını yükler
         loadSeasonName();
         loadRoomName();
         loadRoomType();
+
+        // Oda özellikleri butonuna listener ekler
         btn_room_features.addActionListener(e -> {
             new RoomFeaturesGUI(fld_room_features);
         });
+
+        // Oda ekleme butonuna listener ekler
         btn_room_add.addActionListener(e -> {
             if (isEmpty(fld_room_no) || isEmpty(fld_room_area) || isEmpty(fld_room_stock) || isEmpty(fld_room_adult_price) || isEmpty(fld_room_child_price) || cmb_room_otel_name.getSelectedIndex() == -1 || cmb_room_lodging_name.getSelectedIndex() == -1 || cmb_room_season_name.getSelectedIndex() == -1 || cbm_room_name.getSelectedIndex() == -1 || cmb_room_type.getSelectedIndex() == -1 || isEmpty(fld_room_features)) {
                 JOptionPane.showMessageDialog(null, "Lütfen tüm alanları doldurunuz!");
@@ -297,44 +310,55 @@ public class EmployeeGUI extends JFrame {
                 String selectedLodgingName = cmb_room_lodging_name.getSelectedItem().toString();
                 String selectedSeasonName = cmb_room_season_name.getSelectedItem().toString();
 
-                Hotel hotel = Hotel.getFetch(selectedHotelName);
-                Lodgings lodging = Lodgings.getFetch(selectedLodgingName).stream()
-                        .filter(l -> l.getOtel_id() == hotel.getId())
-                        .findFirst()
-                        .orElse(null);
+                Hotel hotel = Hotel.getFetchByName(selectedHotelName);
+                if (hotel == null) {
+                    System.err.println("Hotel not found: " + selectedHotelName);
+                    return;
+                }
+
+                Lodgings lodging = Lodgings.getFetchByType(selectedLodgingName, hotel.getId());
+                if (lodging == null) {
+                    System.err.println("Lodging not found: " + selectedLodgingName);
+                    return;
+                }
+
                 Season season = Season.getFetch(selectedSeasonName).stream()
                         .filter(s -> s.getOtel_id() == hotel.getId())
                         .findFirst()
                         .orElse(null);
-                if (hotel != null && lodging != null && season != null) {
-                    int hotel_id = hotel.getId();
-                    int lodgings_id = lodging.getId();
-                    int season_id = season.getId();
+                if (season == null) {
+                    System.err.println("Season not found: " + selectedSeasonName);
+                    return;
+                }
 
-                    if (Room.add(
-                            hotel_id, //otel
-                            lodgings_id, //pansiyon
-                            season_id, //sezon
-                            cbm_room_name.getSelectedItem().toString(), //Oda Adi (Tek, Çift, Aile)
-                            fld_room_stock.getText(), //Stok
-                            fld_room_no.getText(), //Oda No
-                            fld_room_area.getText(), //Metre Kare
-                            cmb_room_type.getSelectedItem().toString(),//Oda Tipi
-                            fld_room_features.getText(),//Oda Özellikleri
-                            fld_room_adult_price.getText(),//Yetişkin Fiyatı
-                            fld_room_child_price.getText() //Çocuk Fiyatı
-                    )) {
-                        JOptionPane.showMessageDialog(null, "Oda eklendi!", "Bilgi", 1);
-                    } else {
-                        JOptionPane.showMessageDialog(null, "Oda eklenemedi!", "Hata", 0);
-                    }
+                int hotel_id = hotel.getId();
+                int lodgings_id = lodging.getId();
+                int season_id = season.getId();
+
+                if (Room.add(
+                        hotel_id, // otel
+                        lodgings_id, // pansiyon
+                        season_id, // sezon
+                        cmb_room_type.getSelectedItem().toString(), // Oda Adi (Tek, Çift, Aile)
+                        fld_room_stock.getText(), // Stok
+                        fld_room_no.getText(), // Oda No
+                        fld_room_area.getText(), // Metre Kare
+                        cmb_room_type.getSelectedItem().toString(), // Oda Tipi
+                        fld_room_features.getText(), // Oda Özellikleri
+                        fld_room_adult_price.getText(), // Yetişkin Fiyatı
+                        fld_room_child_price.getText() // Çocuk Fiyatı
+                )) {
+                    JOptionPane.showMessageDialog(null, "Oda eklendi!", "Bilgi", 1);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Oda eklenemedi!", "Hata", 0);
                 }
 
                 loadRoomModel();
                 Helper.clearTextField(fld_room_no, fld_room_area, fld_room_stock, fld_room_adult_price, fld_room_child_price, fld_room_features);
             }
-
         });
+
+        // Oda tablosundaki seçim değişikliklerine listener ekler
         tbl_room_list_new.getSelectionModel().addListSelectionListener(
                 e -> {
                     try {
@@ -344,6 +368,8 @@ public class EmployeeGUI extends JFrame {
                         System.out.println(exception.getMessage());
                     }
                 });
+
+        // Oda silme butonuna listener ekler
         btn_room_delete.addActionListener(e -> {
             if (isEmpty(fld_room_id)) {
                 JOptionPane.showMessageDialog(null, "Lütfen ID alanını doldurunuz!", "UYARI", 0);
@@ -354,14 +380,13 @@ public class EmployeeGUI extends JFrame {
                     } else {
                         JOptionPane.showMessageDialog(null, "Oda silinemedi!", "Hata", 0);
                     }
-
                 }
                 loadRoomModel();
                 Helper.clearTextField(fld_room_id);
             }
         });
 
-        //Sezon
+        // Sezon Paneli
         model_season_list = new DefaultTableModel();
         Object[] col_season_list = {"ID", "Otel Adı", "Donem Adi", "Baslangic Tarihi", "Bitis Tarihi"};
         model_season_list.setColumnIdentifiers(col_season_list);
@@ -369,6 +394,7 @@ public class EmployeeGUI extends JFrame {
         tbl_season_list.setModel(model_season_list);
         loadSeasonModel();
 
+        // Sezon tablosundaki seçim değişikliklerine listener ekler
         tbl_season_list.getSelectionModel().addListSelectionListener(
                 e -> {
                     try {
@@ -379,26 +405,34 @@ public class EmployeeGUI extends JFrame {
                     }
                 });
 
+        // Sezon adını combobox'a yükler
         loadComboxSeasonName();
+
+        // Sezon ekleme butonuna listener ekler
         btn_season_add.addActionListener(e -> {
             if (isEmpty(fld_season_otel_id) || cmb_season_name.getSelectedIndex() == -1 || isEmpty(fld_start_date) || isEmpty(fld_end_date)) {
                 JOptionPane.showMessageDialog(null, "Lütfen tüm alanları doldurunuz!");
             } else {
-                if (Season.add(
-                        Integer.parseInt(fld_season_otel_id.getText()),
-                        fld_start_date.getText(),
-                        fld_end_date.getText(),
-                        cmb_season_name.getSelectedItem().toString()
-                )) {
-                    JOptionPane.showMessageDialog(null, "Sezon eklendi!", "Bilgi", 1);
-                } else {
-                    JOptionPane.showMessageDialog(null, "Sezon eklenemedi!", "Hata", 0);
-                }
-                loadSeasonModel();
-                Helper.clearTextField(fld_season_otel_id, fld_start_date, fld_end_date);
-            }
+                try {
+                    int otel_id = Integer.parseInt(fld_season_otel_id.getText());
+                    java.sql.Date start_date = java.sql.Date.valueOf(fld_start_date.getText());
+                    java.sql.Date end_date = java.sql.Date.valueOf(fld_end_date.getText());
+                    String name = cmb_season_name.getSelectedItem().toString();
 
+                    if (Season.add(otel_id, start_date, end_date, name)) {
+                        JOptionPane.showMessageDialog(null, "Sezon eklendi!", "Bilgi", 1);
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Sezon eklenemedi!", "Hata", 0);
+                    }
+                    loadSeasonModel();
+                    Helper.clearTextField(fld_season_otel_id, fld_start_date, fld_end_date);
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(null, "Lütfen geçerli bir tarih formatı giriniz (YYYY-MM-DD)!");
+                }
+            }
         });
+
+        // Sezon silme butonuna listener ekler
         btn_season_delete.addActionListener(e -> {
             if (isEmpty(fld_season_id)) {
                 JOptionPane.showMessageDialog(null, "Lütfen ID alanını doldurunuz!", "UYARI", 0);
@@ -409,83 +443,66 @@ public class EmployeeGUI extends JFrame {
                     } else {
                         JOptionPane.showMessageDialog(null, "Sezon silinemedi!", "Hata", 0);
                     }
-
                 }
                 loadSeasonModel();
                 Helper.clearTextField(fld_season_id);
             }
-
         });
 
-        // Arama
-        cmb_search_mix_list.removeAllItems();
+        // Arama Paneli
+        /*cmb_search_mix_list.removeAllItems();
         for (SearchMix searchMix : SearchMix.values()) {
             cmb_search_mix_list.addItem(searchMix);
-        }
+        }*/
+
         ArrayList<Room> searchRoom = new ArrayList<>();
 
+        // Oda arama butonuna listener ekler
         btn_search.addActionListener(e -> {
-            String searchMix = cmb_search_mix_list.getSelectedItem().toString();
+            // String searchMix = cmb_search_mix_list.getSelectedItem().toString();
             String searchMixValue = fld_search_mix_value.getText().toString();
             String searchRoomStartDate = fld_search_room_start_date.getText().toString();
             String searchRoomEndDate = fld_search_room_end_date.getText().toString();
-            String searchRoomAdultPrice = fld_search_room_adult_price_.getText().toString();
-            String searchRoomChildPrice = fld_search_room_child_price.getText().toString();
+            String searchRoomCity = fld_search_room_city.getText().toString();
 
-            if (!searchMixValue.isEmpty() && !searchRoomStartDate.isEmpty() && !searchRoomEndDate.isEmpty() && !searchRoomAdultPrice.isEmpty() && !searchRoomChildPrice.isEmpty()) {
-                ArrayList<Room> rooms = Room.search(searchRoomAdultPrice, searchRoomChildPrice);
-                rooms.stream().filter(room -> room.getSeason().getStart_date().equals(searchRoomStartDate) && room.getSeason().getEnd_date().equals(searchRoomEndDate)).forEach(room -> {
-                    if (searchMix.equals("Bolge")) {
-                        if (room.getHotel().getRegion().equals(searchMixValue)) {
-                            searchRoom.add(room);
-                        }
-                    } else if (searchMix.equals("Sehir")) {
-                        if (room.getHotel().getCity().equals(searchMixValue)) {
-                            searchRoom.add(room);
-                        }
-                    } else if (searchMix.equals("Otel")) {
-                        if (room.getHotel().getName().equals(searchMixValue)) {
-                            searchRoom.add(room);
-                        }
-                    }
-
-                });
-            }
-
-            if (searchRoom.size() > 0) {
-                Helper.clearTextField(fld_search_mix_value, fld_search_room_start_date, fld_search_room_end_date, fld_search_room_adult_price_, fld_search_room_child_price);
-                loadRoomSearchModel(searchRoom);
+            if (!searchMixValue.isEmpty() && !searchRoomStartDate.isEmpty() && !searchRoomEndDate.isEmpty() && !searchRoomCity.isEmpty()) {
+                ArrayList<Room> rooms = Room.search(searchRoomStartDate, searchRoomEndDate, searchRoomCity, searchMixValue);
+                if (rooms.size() > 0) {
+                    Helper.clearTextField(fld_search_mix_value, fld_search_room_start_date, fld_search_room_end_date, fld_search_room_city);
+                    loadRoomSearchModel(rooms);
+                } else {
+                    Helper.showMessage("Arama sonucu bulunamadı!", "UYARI", 1);
+                }
             } else {
-                Helper.showMessage("Arama sonucu bulunamadı!", "UYARI", 1);
+                Helper.showMessage("Lütfen tüm alanları doldurunuz!", "UYARI", 1);
             }
         });
-        // Initialize the table model
+
+        // Oda arama modelini yükler
         DefaultTableModel model_room_search_list = new DefaultTableModel() {
             public boolean isCellEditable(int row, int column) {
-                return false;  // Assuming you don't want cells to be editable
+                return false;  // Hücrelerin düzenlenebilir olmasını istemiyorsanız
             }
         };
-        Object[] col_room_search_list_new = {"ID", "Otel Adı", "Pansiyon Turu", "Donem Adi", "Oda Adı", "Oda Özellikleri", "Oda No", "Metre Kare", "Stok", "Yetişkin Fiyatı", "Çocuk Fiyatı"};
+        Object[] col_room_search_list_new = {"ID", "Otel Adı", "Pansiyon Turu", "Donem Adi", "Oda Tipi", "Oda Özellikleri", "Oda No", "Metre Kare", "Stok", "Yetişkin Fiyatı", "Çocuk Fiyatı"};
         model_room_search_list.setColumnIdentifiers(col_room_search_list_new);
         row_room_search_list = new Object[col_room_search_list_new.length];
-        // Set the model for the table
         tbl_search_room_list.setModel(model_room_search_list);
 
-
-        //Rezervasyon Ekrani Ac
+        // Rezervasyon Ekranı Aç butonuna listener ekler
         btn_reservation_open.addActionListener(e -> {
             if (tbl_search_room_list.getSelectedRow() != -1) {
                 int selectedRow = tbl_search_room_list.getSelectedRow();
-                String roomId = tbl_search_room_list.getValueAt(selectedRow, 0).toString();
+                int roomId = Integer.parseInt(tbl_search_room_list.getValueAt(selectedRow, 0).toString());
                 Room room = Room.getFetch(roomId);
                 new ReservationGUI(room, employee);
             } else {
                 Helper.showMessage("Lütfen bir oda seçiniz!", "UYARI", 1);
             }
-
         });
     }
 
+    // Oda arama modelini yükler
     private void loadRoomSearchModel(ArrayList<Room> searchRoom) {
         DefaultTableModel model_room_clear = (DefaultTableModel) tbl_search_room_list.getModel();
         model_room_clear.setRowCount(0);
@@ -507,10 +524,10 @@ public class EmployeeGUI extends JFrame {
                 row_room_search_list[i++] = obj.getPrice_child() + " TL";
                 model_room_clear.addRow(row_room_search_list);
             }
-
         }
     }
 
+    // Sezon adını combobox'a yükler
     private void loadComboxSeasonName() {
         cmb_season_name.removeAllItems();
         for (Feature feature : Feature.getList("sezon ozellikleri")) {
@@ -518,24 +535,36 @@ public class EmployeeGUI extends JFrame {
         }
     }
 
+    // Sezon modelini yükler
     private void loadSeasonModel() {
         DefaultTableModel model_season_clear = (DefaultTableModel) tbl_season_list.getModel();
-        model_season_clear.setRowCount(0);
+        model_season_clear.setRowCount(0); // Mevcut tüm satırları temizle
+
+        // row_season_list dizisinin boyutunu belirtir
+        row_season_list = new Object[5];
+
+        // Sezon listesini alır
         ArrayList<Season> seasonArrayList = Season.getList();
-        if (!seasonArrayList.isEmpty()) {
-            for (Season obj : Season.getList()) {
+        if (seasonArrayList != null && !seasonArrayList.isEmpty()) {
+            for (Season obj : seasonArrayList) {
                 int i = 0;
                 row_season_list[i++] = obj.getId();
-                row_season_list[i++] = obj.getHotel().getName();
+                if (obj.getHotel() != null) {
+                    row_season_list[i++] = obj.getHotel().getName();
+                } else {
+                    row_season_list[i++] = "N/A"; // veya uygun bir varsayılan değer
+                }
                 row_season_list[i++] = obj.getName();
                 row_season_list[i++] = obj.getStart_date();
                 row_season_list[i++] = obj.getEnd_date();
-                model_season_clear.addRow(row_season_list);
+                model_season_clear.addRow(row_season_list); // Model'e yeni satırı ekler
             }
-
+        } else {
+            System.out.println("Sezon listesi boş.");
         }
     }
 
+    // Oda tipini combobox'a yükler
     private void loadRoomType() {
         cmb_room_type.removeAllItems();
         for (RoomType roomType : RoomType.values()) {
@@ -543,6 +572,7 @@ public class EmployeeGUI extends JFrame {
         }
     }
 
+    // Oda adını combobox'a yükler
     private void loadRoomName() {
         cbm_room_name.removeAllItems();
         for (RoomName roomName : RoomName.values()) {
@@ -550,6 +580,7 @@ public class EmployeeGUI extends JFrame {
         }
     }
 
+    // Sezon adını combobox'a yükler
     private void loadSeasonName() {
         cmb_room_season_name.removeAllItems();
         for (Feature feature : Feature.getList("sezon ozellikleri")) {
@@ -557,7 +588,7 @@ public class EmployeeGUI extends JFrame {
         }
     }
 
-
+    // Pansiyon adını combobox'a yükler
     private void loadComboxBoxLodgingsName() {
         cmb_room_lodging_name.removeAllItems();
         System.out.println(cmb_room_otel_name.getSelectedIndex());
@@ -567,6 +598,7 @@ public class EmployeeGUI extends JFrame {
         }
     }
 
+    // Otel adını combobox'a yükler
     private void loadComboBoxHotelName() {
         cmb_room_otel_name.removeAllItems();
         hotels = Hotel.getList();
@@ -575,18 +607,51 @@ public class EmployeeGUI extends JFrame {
         }
     }
 
-    private void loadRoomModel() {
+    // Oda modelini yükler
+    public void loadRoomModel() {
+        if (tbl_room_list_new == null) {
+            throw new NullPointerException("tbl_room_list_new is null");
+        }
+
         DefaultTableModel model_room_clear = (DefaultTableModel) tbl_room_list_new.getModel();
+        if (model_room_clear == null) {
+            throw new NullPointerException("tbl_room_list_new.getModel() returned null");
+        }
         model_room_clear.setRowCount(0);
-        //"ID", "Otel Adı", "Pansiyon Turu","Donem Adi", "Oda Adı", "Oda Özellikleri", "Yatak Sayısı", "Metre Kare", "Stok", "Yetişkin Fiyatı", "Çocuk Fiyatı"
+
+        Object[] row_room_list = new Object[11]; // Uygun boyutta başlatılır
+
         ArrayList<Room> roomArrayList = Room.getList();
+        if (roomArrayList == null) {
+            throw new NullPointerException("Room.getList() returned null");
+        }
+
         if (!roomArrayList.isEmpty()) {
             for (Room obj : roomArrayList) {
                 int i = 0;
                 row_room_list[i++] = obj.getId();
-                row_room_list[i++] = obj.getHotel().getName();
-                row_room_list[i++] = obj.getLodgings().getType();
-                row_room_list[i++] = obj.getSeason().getName();
+
+                Hotel hotel = obj.getHotel();
+                if (hotel == null) {
+                    System.err.println("Hotel not found for Room ID: " + obj.getId());
+                    continue; // Bu nesneyi atlar ve bir sonraki nesneye geçer
+                }
+                row_room_list[i++] = hotel.getName();
+
+                Lodgings lodgings = obj.getLodgings();
+                if (lodgings == null) {
+                    System.err.println("Lodgings not found for Room ID: " + obj.getId());
+                    continue; // Bu nesneyi atlar ve bir sonraki nesneye geçer
+                }
+                row_room_list[i++] = lodgings.getType();
+
+                Season season = obj.getSeason();
+                if (season == null) {
+                    System.err.println("Season not found for Room ID: " + obj.getId());
+                    continue; // Bu nesneyi atlar ve bir sonraki nesneye geçer
+                }
+                row_room_list[i++] = season.getName();
+
                 row_room_list[i++] = obj.getName();
                 row_room_list[i++] = obj.getFeatures();
                 row_room_list[i++] = obj.getBed_number();
@@ -594,22 +659,24 @@ public class EmployeeGUI extends JFrame {
                 row_room_list[i++] = obj.getStock();
                 row_room_list[i++] = obj.getPrice_adult() + " TL";
                 row_room_list[i++] = obj.getPrice_child() + " TL";
+
                 model_room_clear.addRow(row_room_list);
             }
-
+        } else {
+            System.out.println("Oda listesi boş.");
         }
     }
 
+    // Pansiyon özelliklerini yükler
     private void loadLodgingsFeaterus() {
         cbm_otel_lodgings_features.removeAllItems();
         for (Feature feature : Feature.getList("pansiyon ozelligi")) {
             cbm_otel_lodgings_features.addItem(feature.getType());
         }
-
     }
 
+    // Pansiyon modelini yükler
     private void loadLodgingsModel(int selectedData) {
-
         DefaultTableModel model_lodgings_list = (DefaultTableModel) tbl_lodgings_list.getModel();
         model_lodgings_list.setRowCount(0);
         ArrayList<Lodgings> lodgingsArrayList = Lodgings.getList(selectedData);
@@ -624,7 +691,7 @@ public class EmployeeGUI extends JFrame {
         }
     }
 
-
+    // Otel modelini yükler
     private void loadHotelModel() {
         DefaultTableModel clearModel = (DefaultTableModel) tbl_otel_list.getModel();
         clearModel.setRowCount(0);
@@ -642,16 +709,12 @@ public class EmployeeGUI extends JFrame {
             row_hotel_list[i++] = obj.getStar();
             row_hotel_list[i++] = obj.getFeatures();
             model_otel_list.addRow(row_hotel_list);
-
         }
     }
 
-    // Otel Paneli
-
+    // Main metodu: Programın giriş noktası
     public static void main(String[] args) {
         Helper.setLayout();
         EmployeeGUI employeeGUI = new EmployeeGUI(new Employee());
     }
-
-
 }
